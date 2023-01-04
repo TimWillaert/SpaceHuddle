@@ -171,9 +171,40 @@
           </div>
         </el-form-item>
         <el-form-item
+          v-if="formData.questionType === QuestionType.ORDER"
+        >
+          <draggable v-model="formData.answers" 
+                    tag="transition-group" 
+                    :component-data="{ tag: 'ul', name: 'flip-list', type: 'transition' }"
+                    group="orderAnswers" 
+                    @start="dragging=true" 
+                    @end="handleOrderChange" 
+                    item-key="id">
+            <template #item="{ element }">
+              <div class="orderDraggable">
+                <h2 class="media-left">{{ element.order + 1 }}</h2>
+                <el-input 
+                  v-model="element.keywords" 
+                  :placeholder="
+                    $t('module.information.quiz.moderatorContent.answerExample')
+                  "
+                />
+                <span
+                  class="icons"
+                  v-if="formData.answers.length > minAnswerCount"
+                  v-on:click="deleteAnswer(element)"
+                >
+                  <font-awesome-icon icon="trash" class="link" />
+                </span>
+              </div>
+            </template>
+          </draggable>
+        </el-form-item>
+        <el-form-item
           v-if="
             formData.questionType === QuestionType.MULTIPLECHOICE ||
-            formData.questionType === QuestionType.SINGLECHOICE
+            formData.questionType === QuestionType.SINGLECHOICE ||
+            formData.questionType === QuestionType.ORDER
           "
         >
           <AddItem
@@ -317,6 +348,8 @@ export default class ModeratorContent extends Vue implements IModeratorContent {
   QuestionnaireType = QuestionnaireType;
   QuestionType = QuestionType;
 
+  dragging = false;
+
   get QuestionTypeList(): QuestionType[] {
     return this.questionnaireType === QuestionnaireType.QUIZ
       ? QuizQuestionType
@@ -361,6 +394,14 @@ export default class ModeratorContent extends Vue implements IModeratorContent {
       question: Object.assign({}, question.question),
       answers: question.answers.map((answer) => Object.assign({}, answer)),
     };
+  }
+
+  handleOrderChange(): void {
+    this.dragging = false;
+    this.formData.answers.forEach((answer) => {
+      let position = this.formData.answers.indexOf(answer);
+      answer.order = position;
+    })
   }
 
   @Watch('editQuestion', { immediate: true })
@@ -456,11 +497,13 @@ export default class ModeratorContent extends Vue implements IModeratorContent {
   }
 
   deleteAnswer(answer: Hierarchy): void {
-    if (answer.id) {
-      hierarchyService.deleteHierarchy(answer.id);
-    }
     const index = this.formData.answers.indexOf(answer);
     this.formData.answers.splice(index, 1);
+    this.handleOrderChange()
+    if (answer.id) {
+      hierarchyService.deleteHierarchy(answer.id);
+      this.saveQuestion()
+    }
   }
 
   saveQuestion(): void {
@@ -805,5 +848,27 @@ export default class ModeratorContent extends Vue implements IModeratorContent {
     font-size: 1rem;
     gap: 0.3rem;
   }
+}
+
+.orderDraggable{
+  background-color: white;
+  padding: 1.5rem;
+  cursor: move;
+  margin: 1rem 0;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.orderDraggable h2{
+  font-weight: bold;
+}
+
+.flip-list-move {
+  transition: transform 0.5s;
+}
+
+.no-move {
+  transition: transform 0s;
 }
 </style>

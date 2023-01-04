@@ -461,7 +461,8 @@
       "slider": "Slider",
       "number": "Number",
       "text": "Text",
-      "image": "Bild"
+      "image": "Bild",
+      "order": "Ordnen"
     }
   },
   "general": {

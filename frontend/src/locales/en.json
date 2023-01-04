@@ -461,7 +461,8 @@
       "slider": "Slider",
       "number": "Number",
       "text": "Text",
-      "image": "Image"
+      "image": "Image",
+      "order": "Order"
     }
   },
   "general": {
