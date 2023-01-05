@@ -109,6 +109,26 @@
             />
           </el-button>
         </el-space>
+        <el-space
+          direction="vertical"
+          class="fill"
+          v-else-if="activeQuestionType === QuestionType.ORDER">
+          <draggable v-model="orderAnswers" 
+                    tag="transition-group" 
+                    :component-data="{ tag: 'ul', name: 'flip-list', type: 'transition' }"
+                    v-bind="dragOptions"
+                    group="orderAnswers" 
+                    @start="dragging=true"
+                    @end="handleOrderChange" 
+                    item-key="answer">
+            <template #item="{ element }">
+              <div class="orderDraggable" v-on:dragstart="disableGhostTrail">
+                <h2 class="media-left">{{ orderAnswers.indexOf(element) + 1 }}</h2>
+                <p>{{element.answer.keywords}}</p>
+              </div>
+            </template>
+          </draggable>
+        </el-space>
         <el-rate
           v-else-if="activeQuestionType === QuestionType.RATING"
           :max="activeQuestion.parameter.maxValue"
@@ -198,6 +218,7 @@ import {
 } from '@/modules/information/quiz/types/Question';
 import { Hierarchy } from '@/types/api/Hierarchy';
 import ImagePicker from '@/components/moderator/atoms/ImagePicker.vue';
+import draggable from 'vuedraggable';
 
 @Options({
   components: {
@@ -205,6 +226,7 @@ import ImagePicker from '@/components/moderator/atoms/ImagePicker.vue';
     QuizResult,
     ParticipantModuleDefaultContainer,
     PublicBase,
+    draggable
   },
 })
 /* eslint-disable @typescript-eslint/no-explicit-any*/
@@ -241,7 +263,40 @@ export default class Participant extends Vue {
   QuestionPhase = QuestionPhase;
   QuestionType = QuestionType;
 
+  orderAnswers: PublicAnswerData[] = []
+  dragging = false;
+  dragOptions = {
+      animation: 200,
+      group: "description",
+      disabled: false,
+      ghostClass: "ghost"
+  }
+
   submitScreen = false;
+
+  @Watch('publicAnswerList', { immediate: false })
+  publicAnswerListChanged(): void {
+    if(this.orderAnswers.length !== this.publicAnswerList.length){
+      this.orderAnswers = this.publicAnswerList;
+      this.orderAnswers.sort((a, b) => 0.5 - Math.random());
+    }
+  }
+
+  handleOrderChange(): void {
+    this.dragging = false;
+    this.publicAnswerList.forEach((answer) => {
+      let position = this.publicAnswerList.indexOf(answer);
+      answer.answer.order = position;
+    })
+  }
+
+  //Disable dragging ghost trail: https://stackoverflow.com/questions/49106153/how-to-remove-ghost-image-when-dragging-an-img-using-css-or-javascript
+  disableGhostTrail(event: DragEvent): void {
+    var emptyImage = document.createElement('img');
+    // Set the src to be a 0x0 gif
+    emptyImage.src = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+    if(event.dataTransfer) event.dataTransfer.setDragImage(emptyImage, 0, 0);
+  }
 
   get activeQuestionRange(): number[] | { [key: number]: string } {
     if (this.activeQuestion) {
@@ -396,6 +451,7 @@ export default class Participant extends Vue {
       )
       .then(async (questions) => {
         this.questionCount = questions.length;
+        console.log(questions)
       });
   }
 
@@ -927,5 +983,22 @@ label {
   .el-slider__stop {
     width: 0.1px;
   }
+}
+
+.orderDraggable{
+  background-color: #f4f4f4;
+  padding: 1.5rem;
+  cursor: move;
+  margin: 1rem 0;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+}
+.orderDraggable h2{
+  font-weight: bold;
+}
+
+.ghost {
+  opacity: 0.5;
 }
 </style>

@@ -176,12 +176,13 @@
           <draggable v-model="formData.answers" 
                     tag="transition-group" 
                     :component-data="{ tag: 'ul', name: 'flip-list', type: 'transition' }"
+                    v-bind="dragOptions"
                     group="orderAnswers" 
                     @start="dragging=true" 
                     @end="handleOrderChange" 
                     item-key="id">
             <template #item="{ element }">
-              <div class="orderDraggable">
+              <div class="orderDraggable" v-on:dragstart="disableGhostTrail">
                 <h2 class="media-left">{{ element.order + 1 }}</h2>
                 <el-input 
                   v-model="element.keywords" 
@@ -349,6 +350,12 @@ export default class ModeratorContent extends Vue implements IModeratorContent {
   QuestionType = QuestionType;
 
   dragging = false;
+  dragOptions = {
+      animation: 200,
+      group: "description",
+      disabled: false,
+      ghostClass: "ghost"
+  }
 
   get QuestionTypeList(): QuestionType[] {
     return this.questionnaireType === QuestionnaireType.QUIZ
@@ -402,6 +409,14 @@ export default class ModeratorContent extends Vue implements IModeratorContent {
       let position = this.formData.answers.indexOf(answer);
       answer.order = position;
     })
+  }
+
+  //Disable dragging ghost trail: https://stackoverflow.com/questions/49106153/how-to-remove-ghost-image-when-dragging-an-img-using-css-or-javascript
+  disableGhostTrail(event: DragEvent): void {
+    var emptyImage = document.createElement('img');
+    // Set the src to be a 0x0 gif
+    emptyImage.src = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+    if(event.dataTransfer) event.dataTransfer.setDragImage(emptyImage, 0, 0);
   }
 
   @Watch('editQuestion', { immediate: true })
@@ -864,11 +879,7 @@ export default class ModeratorContent extends Vue implements IModeratorContent {
   font-weight: bold;
 }
 
-.flip-list-move {
-  transition: transform 0.5s;
-}
-
-.no-move {
-  transition: transform 0s;
+.ghost {
+  opacity: 0.5;
 }
 </style>
