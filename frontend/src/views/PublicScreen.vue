@@ -38,7 +38,7 @@
     :key="componentLoadIndex"
     v-else-if="isModerator"
   >
-    <el-header class="public-screen__header star-header">
+    <el-header class="public-screen__header" :class="[task?.taskType === 'INFORMATION' ? 'black-header' : 'star-header']">
       <PublicHeader class="public-header"> </PublicHeader>
       <TaskTimeline
         v-if="topicId"
@@ -71,35 +71,38 @@
       <el-header>
         <TimerProgress
           class="timer-process"
-          v-if="task !== null"
+          v-if="task !== null && taskType !== TaskType.INFORMATION"
           :entity="task"
         />
       </el-header>
     </el-container>
-    <el-container class="public-screen__container">
-      <el-main class="public-screen__main">
+    <el-container :class="[taskType === TaskType.INFORMATION ? 'public-screen__container__stars' : 'public-screen__container']">
+      <el-main :class="[taskType === TaskType.INFORMATION ? 'public-screen__main__stars' : 'public-screen__main']">
         <div ref="scrollContent"></div>
         <el-scrollbar
           native
           :height="`calc(var(--app-height) - ${topContentPosition}px - 0.1rem)`"
         >
-          <TaskInfo
-            v-if="task"
-            :taskId="taskId"
-            :shortenDescription="false"
-            :showType="false"
-            :authHeaderTyp="authHeaderTyp"
-            class="header-info"
-          />
-          <!--<h3 v-if="task" class="heading--regular twoLineText">
-            {{ task.name }}
-          </h3>-->
-          <PublicScreenComponent
-            v-if="task"
-            :task-id="taskId"
-            :key="componentLoadIndex"
-            :authHeaderTyp="authHeaderTyp"
-          />
+          <div :class="{'quiz-layout': taskType === TaskType.INFORMATION}">
+            <TaskInfo
+              v-if="task && taskType !== TaskType.INFORMATION"
+              :taskId="taskId"
+              :shortenDescription="false"
+              :showType="false"
+              :authHeaderTyp="authHeaderTyp"
+              class="header-info fade-down anim-delay-md anim-slow"
+            />
+            <!--<h3 v-if="task" class="heading--regular twoLineText">
+              {{ task.name }}
+            </h3>-->
+            <PublicScreenComponent
+              v-if="task"
+              :task="task"
+              :task-id="taskId"
+              :key="componentLoadIndex"
+              :authHeaderTyp="authHeaderTyp"
+            />
+          </div>
         </el-scrollbar>
       </el-main>
     </el-container>
@@ -314,6 +317,7 @@ export default class PublicScreen extends Vue {
             }
           }
           this.task = task;
+          console.log(task)
         }
       });
   }
@@ -348,6 +352,8 @@ h3 {
 
 .header-info {
   margin-bottom: 1rem;
+  color: white;
+  text-align: center;
 }
 
 .module-info::v-deep {
@@ -395,6 +401,27 @@ h3 {
       padding: 0 1rem calc(1rem + var(--corner-radius)) 1rem;
     }
 
+    &.black-header {
+      background: black;
+      mask-image: radial-gradient(
+          circle farthest-corner at 100% 100%,
+          transparent 69%,
+          white 70%
+        ),
+        radial-gradient(
+          circle farthest-corner at 0% 100%,
+          transparent 69%,
+          white 70%
+        ),
+        linear-gradient(white, white);
+      mask-size: var(--corner-radius) var(--corner-radius),
+        var(--corner-radius) var(--corner-radius),
+        100% calc(100% - var(--corner-radius) + 1px);
+      mask-position: bottom left, bottom right, top left;
+      mask-repeat: no-repeat;
+      padding: 0 1rem calc(1rem + var(--corner-radius)) 1rem;
+    }
+
     .el-main {
       overflow: unset;
     }
@@ -411,6 +438,10 @@ h3 {
     margin-top: 1rem;
     padding: 0;
     height: 100%;
+
+    &__stars {
+      margin-top: 0;
+    }
   }
 
   &__timer {
@@ -436,6 +467,23 @@ h3 {
       }
       .el-scrollbar__view {
         padding-top: 2rem;
+      }
+    }
+
+    &__stars{
+      background-color: var(--color-darkblue);
+      background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.3)), url('~@/assets/illustrations/quiz-background.jpg');
+      background-position: center;
+      background-size: cover;
+      color: white;
+
+      .el-scrollbar::v-deep {
+        .el-scrollbar__wrap {
+          padding: 0 var(--side-padding);
+        }
+        .el-scrollbar__view {
+          padding-top: 2rem;
+        }
       }
     }
   }
@@ -589,4 +637,15 @@ h3 {
 .process-timeline-container {
   max-width: calc(var(--app-width) - 2rem);
 }
+
+.quiz-layout{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  padding-bottom: 2rem;
+  position: relative;
+}
+
 </style>
