@@ -86,6 +86,11 @@
       </div>
       <p>{{ publicQuestion.question.parameter.maxValue }}</p>
     </div>
+    <div class="numbers" v-if="publicQuestion.questionType === QuizQuestionTypes.NUMBER">
+      <div :class="{ 'numbers-correct': randomNumber === publicQuestion.question.parameter.correctValue  }">
+        <p>{{ randomNumber }}</p>
+      </div>
+    </div>
   </div>
   <p class="participants fade-up anim-delay-2xl anim-slow">
     {{ task?.participantCount }} participants</p>
@@ -162,6 +167,10 @@ export default class PublicBase extends Vue {
 
   QuizQuestionTypes = QuestionType;
   QuestionType = QuestionnaireType;
+
+  randomNumber = 0;
+  numberInterval: any;
+  numberIntervalTimer = 100;
 
   get isActive(): boolean {
     if (this.moderatedQuestionFlow) {
@@ -303,6 +312,29 @@ export default class PublicBase extends Vue {
       this.initQuestionState();
     });
     this.getHierarchies();
+  }
+
+  @Watch('publicQuestion.question.id', { immediate: true })
+  async onPublicQuestionChanged(): Promise<void> {
+    if(this.publicQuestion?.questionType === this.QuizQuestionTypes.NUMBER){
+      this.randomNumber = 0;
+      this.numberIntervalTimer = 100;
+      this.generateNumber();
+    }
+  }
+
+  private generateNumber(): void {
+    this.numberIntervalTimer = this.numberIntervalTimer * 1.05;
+    this.numberInterval = setTimeout(() => {
+        this.randomNumber = Math.floor(Math.random() * (this.publicQuestion?.question.parameter.maxValue - this.publicQuestion?.question.parameter.minValue + 1)) + this.publicQuestion?.question.parameter.minValue;
+        
+        if(this.publicQuestion?.questionType === this.QuizQuestionTypes.NUMBER && this.numberIntervalTimer < 500){
+          this.generateNumber();
+        } else{
+          clearTimeout(this.numberInterval)
+          this.randomNumber = this.publicQuestion?.question.parameter.correctValue
+        }
+    }, this.numberIntervalTimer);
   }
 
   private initQuestionState(): void {
@@ -820,7 +852,7 @@ h1{
   div{
     flex-grow: 1;
     background-color: #ffffff25;
-    height: 0.8rem;
+    height: 1.5rem;
     border-radius: 10px;
   }
 
@@ -835,16 +867,18 @@ h1{
   position: relative;
 
   div{
-    width: 3%;
+    width: 4.5%;
     height: 100%;
     background: #01cf9fb3;
     position: absolute;
     
-    @for $x from 2 through 101 {
+    @for $x from 1 through 27 {
       &:nth-child(#{$x}) {
-        animation-delay: 200ms * ($x - 1);
+        animation-delay: 300ms + 300ms * ($x - 1);
       }
     }
+
+    animation-delay: 300ms * 26;
   }
 
   p{
@@ -859,5 +893,22 @@ h1{
     animation-duration: 4s;
     animation-delay: 8s;
   }
+}
+
+.numbers div{
+  width: 10vw;
+  min-height: 5rem;
+  font-size: 1.5rem;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  text-align: center;
+}
+
+.numbers-correct{
+  animation: rightAnswer 4s ease forwards;
 }
 </style>
