@@ -54,7 +54,7 @@
     >
       {{ publicQuestion.question.description }}
     </div> -->
-    <div class="answers">
+    <div class="answers" v-if="publicQuestion.questionType === QuizQuestionTypes.MULTIPLECHOICE || publicQuestion.questionType === QuizQuestionTypes.SINGLECHOICE">
       <div v-for="answer in voteResult.sort((a, b) => {
         if(a.countParticipant < b.countParticipant) return 1
         if(a.countParticipant > b.countParticipant) return -1
@@ -69,6 +69,22 @@
           <span>{{ voteResult.find(option => option.idea.id === answer.idea.id)?.countParticipant }} votes</span>
         </p>
       </div>
+    </div>
+    <div class="slider fade-right anim-slow" v-if="publicQuestion.questionType === QuizQuestionTypes.SLIDER">
+      <p>{{ publicQuestion.question.parameter.minValue }}</p>
+      <div id="slider">
+        <div v-for="answer in voteResult" class="fade-down"
+            :style="{ 'left': Math.floor(parseFloat(answer.idea.keywords) / (publicQuestion.question.parameter.minValue + publicQuestion.question.parameter.maxValue) * 100) + '%',
+                      'transform': '-' + Math.floor(parseFloat(answer.idea.keywords) / (publicQuestion.question.parameter.minValue + publicQuestion.question.parameter.maxValue) * 100) + '%'}">
+        </div>
+        <p :style="{ 'left': Math.floor(parseFloat(publicQuestion.question.parameter.correctValue) / (publicQuestion.question.parameter.minValue + publicQuestion.question.parameter.maxValue) * 100) + '%',
+                      'transform': '-' + Math.floor(parseFloat(publicQuestion.question.parameter.correctValue) / (publicQuestion.question.parameter.minValue + publicQuestion.question.parameter.maxValue) * 100) + '%'}"
+            class="fade-down anim-slow"
+        >
+                      {{ publicQuestion.question.parameter.correctValue }}
+        </p>
+      </div>
+      <p>{{ publicQuestion.question.parameter.maxValue }}</p>
     </div>
   </div>
   <p class="participants fade-up anim-delay-2xl anim-slow">
@@ -87,6 +103,7 @@ import {
   Question,
   QuestionResultStorage,
   QuestionType,
+QuizQuestionType,
 } from '@/modules/information/quiz/types/Question';
 import { VoteResult } from '@/types/api/Vote';
 import {
@@ -143,6 +160,7 @@ export default class PublicBase extends Vue {
   questionState: QuestionState = QuestionState.ACTIVE_CREATE_QUESTION;
   statePointer = 0;
 
+  QuizQuestionTypes = QuestionType;
   QuestionType = QuestionnaireType;
 
   get isActive(): boolean {
@@ -790,6 +808,56 @@ h1{
   }
   100%{
     width: 0;
+  }
+}
+
+.slider{
+  display: flex;
+  align-items: center;
+  width: 40vw;
+  gap: 1.5rem;
+  
+  div{
+    flex-grow: 1;
+    background-color: #ffffff25;
+    height: 0.8rem;
+    border-radius: 10px;
+  }
+
+  p{
+    font-size: 1.5rem;
+    font-weight: bold;
+    font-style: italic;
+  }
+}
+
+#slider{
+  position: relative;
+
+  div{
+    width: 3%;
+    height: 100%;
+    background: #01cf9fb3;
+    position: absolute;
+    
+    @for $x from 2 through 101 {
+      &:nth-child(#{$x}) {
+        animation-delay: 200ms * ($x - 1);
+      }
+    }
+  }
+
+  p{
+    position: absolute;
+    top: -5rem;
+    padding: 1rem;
+    border-radius: 50%;
+    border: 1px solid rgb(0, 222, 0);
+    background-color: rgba(1, 94, 1, 0.393);
+    font-style: normal;
+    font-weight: normal;
+    animation-duration: 4s;
+    animation-delay: 8s;
   }
 }
 </style>
