@@ -99,6 +99,18 @@
       <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" >
       <p>Chris</p>
     </div>
+    <div class="spaceship test4 anim-hover">
+      <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" >
+      <p>test4</p>
+    </div>
+    <div class="spaceship test5 anim-hover">
+      <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" >
+      <p>test5</p>
+    </div>
+    <div class="spaceship test6 anim-hover">
+      <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" >
+      <p>test6</p>
+    </div>
   </div>
 
   <p class="participants fade-up anim-delay-2xl anim-slow">
@@ -154,6 +166,8 @@ import {
   QuestionnaireType,
 } from '@/modules/information/quiz/types/QuestionnaireType';
 import TimerProgress from '@/components/shared/atoms/TimerProgress.vue';
+import * as sessionService from '@/services/session-service';
+import { ParticipantInfo } from '@/types/api/Participant';
 
 export interface PublicAnswerData {
   answer: Hierarchy;
@@ -198,6 +212,7 @@ export default class PublicBase extends Vue {
   randomNumber = 0;
   numberInterval: any;
   numberIntervalTimer = 100;
+  participants: ParticipantInfo[] = [];
 
   get isActive(): boolean {
     if (this.moderatedQuestionFlow) {
@@ -339,6 +354,9 @@ export default class PublicBase extends Vue {
       this.initQuestionState();
     });
     this.getHierarchies();
+    await sessionService.getParticipants(this.task!.sessionId).then((queryResult) => {
+        this.participants = queryResult;
+      });
   }
 
   @Watch('publicQuestion.question.id', { immediate: true })
@@ -348,6 +366,18 @@ export default class PublicBase extends Vue {
       this.numberIntervalTimer = 100;
       this.generateNumber();
     }
+  }
+
+  @Watch('task.participantCount', { immediate: true })
+  async onParticipantsChanged(): Promise<void> {
+    await sessionService.getParticipants(this.task!.sessionId).then((queryResult) => {
+        this.participants = queryResult;
+      });
+  }
+
+  @Watch('voteResult', { immediate: true })
+  async onVotesChanged(): Promise<void> {
+    //do something
   }
 
   private generateNumber(): void {
@@ -718,18 +748,33 @@ h1{
 }
 
 .test1{
-  left: 5rem;
-  top: 50%;
+  left: 4rem;
+  top: 15%;
 }
 
 .test2{
-  right: 12rem;
-  top: 20%;
+  right: 7rem;
+  top: 30%;
 }
 
 .test3{
+  left: 12rem;
+  top: 45%;
+}
+
+.test4{
+  right: 15rem;
+  top: 60%;
+}
+
+.test5{
+  left: 7rem;
+  top: 75%;
+}
+
+.test6{
   right: 3rem;
-  top: 70%;
+  top: 85%;
 }
 
 .answers{
