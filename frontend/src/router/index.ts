@@ -131,6 +131,9 @@ const routes: Array<RouteRecordRaw> = [
     path: '/overview',
     name: 'participant-overview',
     component: ParticipantOverview,
+    props: (route) => ({
+      nickname: route.params.nickname,
+    }),
     meta: {
       requiresAuth: true,
       requiresParticipant: true,

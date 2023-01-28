@@ -10,6 +10,7 @@ use App\Domain\Base\Repository\RepositoryTrait;
 use App\Domain\Participant\Data\ParticipantData;
 use App\Domain\Participant\Data\ParticipantTaskData;
 use App\Domain\Participant\Type\AvatarSymbol;
+use App\Domain\Participant\Type\DefaultNickname;
 use App\Domain\Participant\Type\ParticipantState;
 use App\Domain\Session\Repository\SessionRepository;
 use App\Domain\Task\Type\TaskState;
@@ -73,7 +74,7 @@ class ParticipantRepository implements RepositoryInterface
                 $data->symbol = AvatarSymbol::getRandomValue();
                 $data->state = ParticipantState::ACTIVE;
                 if (is_null($data->nickname) || $data->nickname == "")
-                    $data->nickname = $data->symbol;
+                    $data->nickname = DefaultNickname::getRandomValue();
 
                 $participant = $this->insert($data);
                 $participant->nickname = $data->nickname;

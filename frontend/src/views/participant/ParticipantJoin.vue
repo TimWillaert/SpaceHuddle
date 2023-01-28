@@ -185,8 +185,12 @@ export default class ParticipantJoin extends Vue {
         authService.setAccessTokenParticipant(
           participantData.token.accessToken as string
         );
+        console.log(participantData.participant.nickname);
         this.$router.push({
           name: 'participant-overview',
+          params: {
+                nickname: participantData.participant.nickname,
+              },
         });
         return true;
       }

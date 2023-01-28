@@ -17,7 +17,7 @@
           </span>
         </div>
         <span class="participant-header__info threeLineText">
-            {{ sessionName }}
+            {{ nickname }}
         </span>
         <div class="image">
           <img
@@ -104,6 +104,7 @@ import Timer from '@/components/shared/atoms/Timer.vue';
 import { getColorOfType, getIconOfType } from '@/types/enum/TaskCategory';
 import { Task } from '@/types/api/Task';
 import ParticipantDefaultContainer from '@/components/participant/organisms/layout/ParticipantDefaultContainer.vue';
+import { Prop } from 'vue-property-decorator';
 
 @Options({
   components: {
@@ -116,12 +117,12 @@ import ParticipantDefaultContainer from '@/components/participant/organisms/layo
 
 /* eslint-disable @typescript-eslint/no-explicit-any*/
 export default class ParticipantOverview extends Vue {
+  @Prop({ default: '' }) readonly nickname!: string;
   topics: Topic[] = [];
   TaskType = TaskType;
   sessionName = '';
   sessionDescription = '';
   sessionId = '';
-  nickname = '';
   readonly intervalTime = 10000;
   interval!: any;
   openTabs: string[] = [];
