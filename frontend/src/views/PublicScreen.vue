@@ -647,5 +647,4 @@ h3 {
   padding-bottom: 2rem;
   position: relative;
 }
-
 </style>
