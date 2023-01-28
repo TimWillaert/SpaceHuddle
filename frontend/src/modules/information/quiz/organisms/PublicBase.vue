@@ -106,17 +106,20 @@
 
   <div :key="publicQuestion?.question.id" id="scoreboard">
     <div class="scoreboard__participant">
-      <h1>Brenden</h1>
+      <h1>1</h1>
+      <h2>Brenden</h2>
       <div></div>
       <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" />
     </div>
     <div class="scoreboard__participant">
-      <h1>Verena</h1>
+      <h1>2</h1>
+      <h2>Verena</h2>
       <div></div>
       <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" />
     </div>
     <div class="scoreboard__participant">
-      <h1>Joel</h1>
+      <h1>3</h1>
+      <h2>Joel</h2>
       <div></div>
       <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" />
     </div>
@@ -999,9 +1002,22 @@ h1{
   .scoreboard__participant{
     display: flex;
     align-items: center;
+    margin: 3rem 0;
 
     h1{
+      width: 3rem;
+      font-style: italic;
+      opacity: 0.7;
+      font-size: 1.7rem;
+    }
+
+    h2{
       width: 8rem;
+      font-size: 1.7rem;
+      margin-right: 2rem;
+      font-weight: bold;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     div{
@@ -1038,7 +1054,7 @@ h1{
   }
 
   img{
-    height: 3rem;
+    height: 4.5rem;
     transform: rotate(90deg);
     margin-left: 2rem;
   }
