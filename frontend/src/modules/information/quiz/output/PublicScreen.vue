@@ -4,36 +4,7 @@
     :authHeaderTyp="authHeaderTyp"
     v-on:changePublicAnswers="(answers) => (publicAnswerList = answers)"
   >
-    <template #answers>
-      <el-space direction="vertical" class="fill">
-        <div
-          v-for="answer in publicAnswerList"
-          :key="answer.answer.id"
-          class="answer"
-          :class="{
-            correct: answer.answer.parameter.isCorrect && answer.isFinished,
-            wrong: !answer.answer.parameter.isCorrect && answer.isFinished,
-            plain: answer.isHighlightedTemporarily,
-          }"
-        >
-          {{ answer.answer.keywords }}
-        </div>
-      </el-space>
-    </template>
   </PublicBase>
-
-  <div class="spaceship test1 anim-hover">
-    <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" >
-    <p>Philip</p>
-  </div>
-  <div class="spaceship test2 anim-hover">
-    <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" >
-    <p>Jane</p>
-  </div>
-  <div class="spaceship test3 anim-hover">
-    <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" >
-    <p>Chris</p>
-  </div>
 </template>
 
 <script lang="ts">
@@ -96,42 +67,5 @@ export default class PublicScreen extends Vue {
 
 .wrong {
   --el-button-border-color: var(--color-red);
-}
-
-.spaceship{
-  position: absolute;
-
-  img{
-    width: 5rem;
-    height: 5rem;
-
-    position: absolute;
-    bottom: 1.7rem;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-
-  p{
-    color: black;
-    font-weight: 600;
-    background-color: white;
-    padding: 0.5rem;
-    border-radius: 5px;
-  }
-}
-
-.test1{
-  left: 5rem;
-  top: 50%;
-}
-
-.test2{
-  right: 12rem;
-  top: 20%;
-}
-
-.test3{
-  right: 3rem;
-  top: 70%;
 }
 </style>
