@@ -85,32 +85,30 @@
         <p>{{ randomNumber }}</p>
       </div>
     </div>
-
-
-    <div class="spaceship test1 anim-hover">
-      <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" >
-      <p>Philip</p>
-    </div>
-    <div class="spaceship test2 anim-hover">
-      <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" >
-      <p>Jane</p>
-    </div>
-    <div class="spaceship test3 anim-hover">
-      <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" >
-      <p>Chris</p>
-    </div>
-    <div class="spaceship test4 anim-hover">
-      <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" >
-      <p>test4</p>
-    </div>
-    <div class="spaceship test5 anim-hover">
-      <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" >
-      <p>test5</p>
-    </div>
-    <div class="spaceship test6 anim-hover">
-      <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" >
-      <p>test6</p>
-    </div>
+  </div>
+  <div v-if="firstVotes.length > 0" class="spaceship test1 anim-hover">
+    <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" >
+    <p>{{ firstVotes[0] }}</p>
+  </div>
+  <div v-if="firstVotes.length > 1" class="spaceship test2 anim-hover">
+    <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" >
+    <p>{{ firstVotes[1] }}</p>
+  </div>
+  <div v-if="firstVotes.length > 2" class="spaceship test3 anim-hover">
+    <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" >
+    <p>{{ firstVotes[2] }}</p>
+  </div>
+  <div v-if="firstVotes.length > 3" class="spaceship test4 anim-hover">
+    <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" >
+    <p>{{ firstVotes[3] }}</p>
+  </div>
+  <div v-if="firstVotes.length > 4" class="spaceship test5 anim-hover">
+    <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" >
+    <p>{{ firstVotes[4] }}</p>
+  </div>
+  <div v-if="firstVotes.length > 5" class="spaceship test6 anim-hover">
+    <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" >
+    <p>{{ firstVotes[5] }}</p>
   </div>
 
   <p class="participants fade-up anim-delay-2xl anim-slow">
@@ -216,6 +214,8 @@ export default class PublicBase extends Vue {
   numberInterval: any;
   numberIntervalTimer = 100;
   participants: ParticipantInfo[] = [];
+  firstVotes: string[] = [];
+  firstVotesCount = 0;
 
   get isActive(): boolean {
     if (this.moderatedQuestionFlow) {
@@ -369,18 +369,32 @@ export default class PublicBase extends Vue {
       this.numberIntervalTimer = 100;
       this.generateNumber();
     }
+    this.firstVotes = [];
+    this.firstVotesCount = 0;
   }
 
   @Watch('task.participantCount', { immediate: true })
   async onParticipantsChanged(): Promise<void> {
-    await sessionService.getParticipants(this.task!.sessionId).then((queryResult) => {
-        this.participants = queryResult;
-      });
+    if (this.task)
+    {
+      await sessionService.getParticipants(this.task!.sessionId).then((queryResult) => {
+          this.participants = queryResult;
+        });
+    }
   }
 
   @Watch('voteResult', { immediate: true })
   async onVotesChanged(): Promise<void> {
-    //do something
+    let count = 0;
+    for(const index in this.voteResult)
+    {
+      count += this.voteResult[index].countParticipant;
+    }
+    if (count > this.firstVotesCount && this.firstVotesCount < 6 && this.firstVotesCount < this.participants.length)
+    {
+      this.firstVotesCount++;
+      this.firstVotes.push(this.participants[this.firstVotesCount-1].nickname);
+    }
   }
 
   private generateNumber(): void {
@@ -616,6 +630,7 @@ export default class PublicBase extends Vue {
         })
       );
     }
+    this.getVotes();
   }
 
   async mounted(): Promise<void> {
@@ -749,6 +764,7 @@ h1{
     border-radius: 5px;
   }
 }
+
 
 .test1{
   left: 4rem;
