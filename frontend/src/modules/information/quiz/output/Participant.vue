@@ -274,20 +274,13 @@ export default class Participant extends Vue {
 
   submitScreen = false;
 
-  @Watch('publicAnswerList', { immediate: false })
-  publicAnswerListChanged(): void {
-    if(this.orderAnswers.length !== this.publicAnswerList.length){
-      this.orderAnswers = this.publicAnswerList;
-      this.orderAnswers.sort((a, b) => 0.5 - Math.random());
-    }
-  }
-
   handleOrderChange(): void {
     this.dragging = false;
     this.publicAnswerList.forEach((answer) => {
       let position = this.publicAnswerList.indexOf(answer);
       answer.answer.order = position;
     })
+    this.changeOrderVotes()
   }
 
   //Disable dragging ghost trail: https://stackoverflow.com/questions/49106153/how-to-remove-ghost-image-when-dragging-an-img-using-css-or-javascript
@@ -451,7 +444,6 @@ export default class Participant extends Vue {
       )
       .then(async (questions) => {
         this.questionCount = questions.length;
-        console.log(questions)
       });
   }
 
@@ -614,6 +606,34 @@ export default class Participant extends Vue {
     this.questionAnswered = this.getQuestionAnswered();
   }
 
+  async changeOrderVotes(){
+    if(!this.votes){
+      this.orderAnswers.forEach(async (answer, index) => {
+        await votingService
+          .postVote(this.taskId, {
+            ideaId: answer.answer.id!,
+            rating: index,
+            detailRating: 1,
+          })
+          .then((vote) => {
+            this.votes.push(vote);
+          });
+      })
+    } else{
+      this.orderAnswers.forEach(async (answer, index) => {
+        let vote = this.votes.find((element) => element.ideaId === answer.answer.id)
+        if(!vote) return
+        await votingService
+          .putVote({
+            id: vote.id,
+            ideaId: answer.answer.id!,
+            rating: index,
+          })
+      })
+    }
+    this.questionAnswered = this.getQuestionAnswered();
+  }
+
   get moduleName(): string {
     if (this.module) return this.module.name;
     return '';
@@ -735,6 +755,33 @@ export default class Participant extends Vue {
     this.questionAnswered = this.getQuestionAnswered();
     if (!this.moderatedQuestionFlow && this.initData) {
       if (this.questionAnswered) this.goToNextQuestion(null, true);
+    }
+  }
+
+  @Watch('publicAnswerList', { immediate: false })
+  async publicAnswerListChanged(): Promise<void> {
+    if(this.activeQuestionType !== QuestionType.ORDER) return
+    if(!this.votes && this.orderAnswers.length !== this.publicAnswerList.length){
+      this.orderAnswers = this.publicAnswerList;
+      this.orderAnswers.sort((a, b) => 0.5 - Math.random());
+    }
+  }
+
+  @Watch('votes', {immediate: true})
+  votesChanged(): void {
+    if(this.activeQuestionType !== QuestionType.ORDER) return
+    if(this.votes.length === this.publicAnswerList.length){
+      this.orderAnswers = this.publicAnswerList;
+      let sortOrder = this.votes.sort((a, b) => a.rating - b.rating)
+      let sortedVotes: PublicAnswerData[] = [];
+      for(let i = 0; i < sortOrder.length; i++){
+        let option = this.orderAnswers.find((option) => option.answer.id === sortOrder[i].ideaId)
+        if(option) sortedVotes.push(option)
+      }
+      this.orderAnswers = sortedVotes
+    } else{
+      this.orderAnswers = this.publicAnswerList;
+      this.orderAnswers.sort((a, b) => 0.5 - Math.random());
     }
   }
 }
@@ -1000,5 +1047,6 @@ label {
 
 .ghost {
   opacity: 0.5;
+  background-color: aquamarine;
 }
 </style>
