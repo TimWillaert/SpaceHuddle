@@ -4,22 +4,6 @@
     :authHeaderTyp="authHeaderTyp"
     v-on:changePublicAnswers="(answers) => (publicAnswerList = answers)"
   >
-    <template #answers>
-      <el-space direction="vertical" class="fill">
-        <div
-          v-for="answer in publicAnswerList"
-          :key="answer.answer.id"
-          class="answer"
-          :class="{
-            correct: answer.answer.parameter.isCorrect && answer.isFinished,
-            wrong: !answer.answer.parameter.isCorrect && answer.isFinished,
-            plain: answer.isHighlightedTemporarily,
-          }"
-        >
-          {{ answer.answer.keywords }}
-        </div>
-      </el-space>
-    </template>
   </PublicBase>
 </template>
 
@@ -30,6 +14,7 @@ import EndpointAuthorisationType from '@/types/enum/EndpointAuthorisationType';
 import PublicBase, {
   PublicAnswerData,
 } from '@/modules/information/quiz/organisms/PublicBase.vue';
+import { Task } from '@/types/api/Task';
 
 @Options({
   components: {
@@ -40,6 +25,7 @@ import PublicBase, {
 /* eslint-disable @typescript-eslint/no-explicit-any*/
 export default class PublicScreen extends Vue {
   @Prop() readonly taskId!: string;
+  @Prop() readonly task: Task | null = null;
   @Prop({ default: EndpointAuthorisationType.MODERATOR })
   authHeaderTyp!: EndpointAuthorisationType;
   publicAnswerList: PublicAnswerData[] = [];

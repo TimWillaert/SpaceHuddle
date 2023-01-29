@@ -37,6 +37,18 @@
               :placeholder="$t('participant.view.join.pinInfo')"
             />
           </el-form-item>
+          <!--add nickname entry here?-->
+          <p class="join__text">
+          {{ $t('participant.view.join.nicknameEntry') }}
+          </p>
+          <el-form-item prop="nickname">
+            <el-input
+              v-model="formData.nickname"
+              name="nickname"
+              :maxlength=16
+              placeholder="Nickname"
+            />
+          </el-form-item>
         </ValidationForm>
       </main>
     </div>
@@ -69,6 +81,7 @@ export default class ParticipantJoin extends Vue {
   formData: ValidationData = {
     connectionKey: '',
     browserKey: '',
+    nickname: ''
   };
 
   get validateRules(): ValidationRule[] {
@@ -141,23 +154,23 @@ export default class ParticipantJoin extends Vue {
     }
 
     if (connectionKey.includes('.')) {
-      participantService.reconnect(connectionKey).then(
-        (queryResult) => {
+      participantService
+        .reconnect(connectionKey)
+        .then((queryResult) => {
           this.handleConnectionResult(queryResult);
-        },
-        (error) => {
+        })
+        .catch((error) => {
           this.formData.stateMessage = getSingleTranslatedErrorMessage(error);
-        }
-      );
+        });
     } else {
-      participantService.connect(connectionKey).then(
+      participantService.connect(connectionKey, this.formData.nickname.replace(/[^0-9a-z]/gi, '')).then(
         (queryResult) => {
+          console.log(queryResult);
           this.handleConnectionResult(queryResult);
-        },
-        (error) => {
+        })
+        .catch((error) => {
           this.formData.stateMessage = getSingleTranslatedErrorMessage(error);
-        }
-      );
+        });
     }
   }
 
@@ -172,8 +185,12 @@ export default class ParticipantJoin extends Vue {
         authService.setAccessTokenParticipant(
           participantData.token.accessToken as string
         );
+        console.log(participantData.participant.nickname);
         this.$router.push({
           name: 'participant-overview',
+          params: {
+                nickname: participantData.participant.nickname,
+              },
         });
         return true;
       }

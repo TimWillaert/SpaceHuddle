@@ -27,6 +27,7 @@ import {
 import app from '@/main';
 import { ElMessage } from 'element-plus';
 import EndpointAuthorisationType from '@/types/enum/EndpointAuthorisationType';
+import { useI18n } from 'vue-i18n';
 
 /* eslint-disable @typescript-eslint/no-explicit-any*/
 
@@ -130,6 +131,9 @@ const routes: Array<RouteRecordRaw> = [
     path: '/overview',
     name: 'participant-overview',
     component: ParticipantOverview,
+    props: (route) => ({
+      nickname: route.params.nickname,
+    }),
     meta: {
       requiresAuth: true,
       requiresParticipant: true,
@@ -194,11 +198,11 @@ router.beforeEach((to, from, next) => {
     }, 200);
     return;
   }
-  const i18n = (router as any).i18n;
   if (to.query.locale) {
     const locale = to.query.locale as string;
-    if (i18n.containsLocale(locale)) {
-      i18n.setLocale(locale);
+    const i18n = useI18n();
+    if (i18n.availableLocales.includes(locale)) {
+      i18n.locale.value = locale;
     }
   }
 

@@ -1,15 +1,25 @@
 <template>
-  <el-steps
-    v-if="publicQuestion"
-    :active="publicQuestionIndex"
-    finish-status="success"
-  >
-    <el-step
-      v-for="question in questions"
-      :key="question.question.id"
-    ></el-step>
-  </el-steps>
-  <div v-if="showQuestion" class="fill">
+  <div v-if="!showQuestion && publicQuestion" :key="publicQuestion?.question.id" class="question-container fadeToScore">
+    <h1>{{ publicQuestion.question.order + 1 }}. {{ publicQuestion.question.keywords }}</h1>
+    <div class="countdown" v-bind:key="publicQuestion.question.id"></div>
+  </div>
+
+  <div v-else class="question-container fade-down anim-slow">
+    <h1>{{ task?.name }}</h1>
+  </div>
+
+  <div v-if="!publicQuestion && !showQuestion" class="timer fade-right anim-delay-xl anim-slow">
+    <p v-if="task?.remainingTime && task.remainingTime > 0">Answer on your device!</p>
+    <p v-else>Time's up!<br><span>Waiting for the moderator</span></p>
+    <div v-if="task?.remainingTime && task.remainingTime > 0" class="timer__container">
+      <div class="timer__container__icon">
+        <img src="@/assets/icons/svg/clock.svg" alt="timer" >
+      </div>
+      <TimerProgress class="timer__container__text" :entity="task" :isQuiz="true"/>
+    </div>
+  </div>
+
+  <div v-if="showQuestion" :key="publicQuestion?.question.id" class="fill fadeToScore">
     <el-space
       direction="vertical"
       class="fill"
@@ -37,40 +47,94 @@
       <slot name="answers"></slot>
     </el-space>
   </div>
-  <div v-if="(showExplanation || showStatistics) && publicQuestion">
-    <span class="explanation result">
-      {{ publicQuestion.question.order + 1 }}.
-      {{ publicQuestion.question.keywords }}
-    </span>
+  <div v-if="showStatistics && publicQuestion" v-bind:key="publicQuestion.question.id" class="fadeToScore">
+    <div class="answers" v-if="publicQuestion.questionType === QuizQuestionTypes.MULTIPLECHOICE || publicQuestion.questionType === QuizQuestionTypes.SINGLECHOICE">
+      <div v-for="answer in voteResult.sort((a, b) => {
+        if(a.countParticipant < b.countParticipant) return 1
+        if(a.countParticipant > b.countParticipant) return -1
+        return 0
+      })" v-bind:key="answer.idea.id" 
+      :class="{
+          correct: answer.idea.parameter.isCorrect,
+          wrong: !answer.idea.parameter.isCorrect,
+      }">
+        <p>{{ answer.idea.keywords }}
+          <br>
+          <span>{{ voteResult.find(option => option.idea.id === answer.idea.id)?.countParticipant }} votes</span>
+        </p>
+      </div>
+    </div>
+    <div class="slider fade-right anim-slow" v-if="publicQuestion.questionType === QuizQuestionTypes.SLIDER">
+      <p>{{ publicQuestion.question.parameter.minValue }}</p>
+      <div id="slider">
+        <div v-for="answer in voteResult" class="fade-down"
+            :style="{ 'left': Math.floor(parseFloat(answer.idea.keywords) / (publicQuestion.question.parameter.minValue + publicQuestion.question.parameter.maxValue) * 100) + '%',
+                      'transform': '-' + Math.floor(parseFloat(answer.idea.keywords) / (publicQuestion.question.parameter.minValue + publicQuestion.question.parameter.maxValue) * 100) + '%'}">
+        </div>
+        <p :style="{ 'left': Math.floor(parseFloat(publicQuestion.question.parameter.correctValue) / (publicQuestion.question.parameter.minValue + publicQuestion.question.parameter.maxValue) * 100) + '%',
+                      'transform': '-' + Math.floor(parseFloat(publicQuestion.question.parameter.correctValue) / (publicQuestion.question.parameter.minValue + publicQuestion.question.parameter.maxValue) * 100) + '%'}"
+            class="fade-down anim-slow"
+        >
+                      {{ publicQuestion.question.parameter.correctValue }}
+        </p>
+      </div>
+      <p>{{ publicQuestion.question.parameter.maxValue }}</p>
+    </div>
+    <div class="numbers" v-if="publicQuestion.questionType === QuizQuestionTypes.NUMBER">
+      <div :class="{ 'numbers-correct': randomNumber === publicQuestion.question.parameter.correctValue  }">
+        <p>{{ randomNumber }}</p>
+      </div>
+    </div>
+
+
+    <div class="spaceship test1 anim-hover">
+      <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" >
+      <p>Philip</p>
+    </div>
+    <div class="spaceship test2 anim-hover">
+      <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" >
+      <p>Jane</p>
+    </div>
+    <div class="spaceship test3 anim-hover">
+      <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" >
+      <p>Chris</p>
+    </div>
+    <div class="spaceship test4 anim-hover">
+      <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" >
+      <p>test4</p>
+    </div>
+    <div class="spaceship test5 anim-hover">
+      <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" >
+      <p>test5</p>
+    </div>
+    <div class="spaceship test6 anim-hover">
+      <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" >
+      <p>test6</p>
+    </div>
   </div>
-  <div
-    v-if="
-      publicQuestion &&
-      publicQuestion.question &&
-      (showExplanation || showStatistics)
-    "
-    class="explanation"
-  >
-    {{ publicQuestion.question.description }}
-  </div>
-  <div v-if="showStatistics && publicQuestion">
-    <QuizResult
-      :voteResult="voteResult"
-      :change="false"
-      questionnaireType="questionType"
-      :questionType="activeQuestionType"
-      :update="true"
-    />
-  </div>
-  <div v-if="showStatistics && !publicQuestion">
-    <QuizResult
-      :voteResult="voteResult"
-      resultColumn="countParticipant"
-      :change="false"
-      questionnaireType="QuestionType.SURVEY"
-      :questionType="activeQuestionType"
-      :update="true"
-    />
+
+  <p class="participants fade-up anim-delay-2xl anim-slow">
+    {{ task?.participantCount }} participants</p>
+
+  <div :key="publicQuestion?.question.id" id="scoreboard">
+    <div class="scoreboard__participant">
+      <h1>1</h1>
+      <h2>Brenden</h2>
+      <div></div>
+      <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" />
+    </div>
+    <div class="scoreboard__participant">
+      <h1>2</h1>
+      <h2>Verena</h2>
+      <div></div>
+      <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" />
+    </div>
+    <div class="scoreboard__participant">
+      <h1>3</h1>
+      <h2>Joel</h2>
+      <div></div>
+      <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" />
+    </div>
   </div>
 </template>
 
@@ -86,6 +150,7 @@ import {
   Question,
   QuestionResultStorage,
   QuestionType,
+QuizQuestionType,
 } from '@/modules/information/quiz/types/Question';
 import { VoteResult } from '@/types/api/Vote';
 import {
@@ -103,6 +168,9 @@ import {
   moduleNameValid,
   QuestionnaireType,
 } from '@/modules/information/quiz/types/QuestionnaireType';
+import TimerProgress from '@/components/shared/atoms/TimerProgress.vue';
+import * as sessionService from '@/services/session-service';
+import { ParticipantInfo } from '@/types/api/Participant';
 
 export interface PublicAnswerData {
   answer: Hierarchy;
@@ -115,6 +183,7 @@ export interface PublicAnswerData {
   components: {
     Vue3ChartJs,
     QuizResult,
+    TimerProgress
   },
   emits: ['changePublicAnswers', 'changePublicQuestion', 'changeQuizState'],
 })
@@ -140,7 +209,13 @@ export default class PublicBase extends Vue {
   questionState: QuestionState = QuestionState.ACTIVE_CREATE_QUESTION;
   statePointer = 0;
 
+  QuizQuestionTypes = QuestionType;
   QuestionType = QuestionnaireType;
+
+  randomNumber = 0;
+  numberInterval: any;
+  numberIntervalTimer = 100;
+  participants: ParticipantInfo[] = [];
 
   get isActive(): boolean {
     if (this.moderatedQuestionFlow) {
@@ -282,6 +357,44 @@ export default class PublicBase extends Vue {
       this.initQuestionState();
     });
     this.getHierarchies();
+    await sessionService.getParticipants(this.task!.sessionId).then((queryResult) => {
+        this.participants = queryResult;
+      });
+  }
+
+  @Watch('publicQuestion.question.id', { immediate: true })
+  async onPublicQuestionChanged(): Promise<void> {
+    if(this.publicQuestion?.questionType === this.QuizQuestionTypes.NUMBER){
+      this.randomNumber = 0;
+      this.numberIntervalTimer = 100;
+      this.generateNumber();
+    }
+  }
+
+  @Watch('task.participantCount', { immediate: true })
+  async onParticipantsChanged(): Promise<void> {
+    await sessionService.getParticipants(this.task!.sessionId).then((queryResult) => {
+        this.participants = queryResult;
+      });
+  }
+
+  @Watch('voteResult', { immediate: true })
+  async onVotesChanged(): Promise<void> {
+    //do something
+  }
+
+  private generateNumber(): void {
+    this.numberIntervalTimer = this.numberIntervalTimer * 1.05;
+    this.numberInterval = setTimeout(() => {
+        this.randomNumber = Math.floor(Math.random() * (this.publicQuestion?.question.parameter.maxValue - this.publicQuestion?.question.parameter.minValue + 1)) + this.publicQuestion?.question.parameter.minValue;
+        
+        if(this.publicQuestion?.questionType === this.QuizQuestionTypes.NUMBER && this.numberIntervalTimer < 500){
+          this.generateNumber();
+        } else{
+          clearTimeout(this.numberInterval)
+          this.randomNumber = this.publicQuestion?.question.parameter.correctValue
+        }
+    }, this.numberIntervalTimer);
   }
 
   private initQuestionState(): void {
@@ -540,7 +653,7 @@ export default class PublicBase extends Vue {
 
 .explanation {
   width: 100%;
-  text-align: justify;
+  text-align: center;
   white-space: pre-line;
 }
 
@@ -556,5 +669,448 @@ export default class PublicBase extends Vue {
 .question-image {
   max-height: 30vh;
   object-fit: contain;
+}
+
+h1{
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+
+.timer{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+
+  p{
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-align: center;
+
+    span{
+      font-size: 1rem;
+      opacity: 0.7;
+      font-weight: normal;
+    }
+  }
+
+  &__container{
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    &__icon{
+      background-color: white;
+      width: fit-content;
+      height: fit-content;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 50%;
+      padding: 0.8rem;
+
+      img{
+        height: 1.8rem;
+      }
+    }
+
+    &__text{
+      font-weight: bold;
+      font-style: italic;
+      font-size: 2.5rem;
+      width: 7rem;
+    }
+  }
+}
+
+.participants{
+  font-weight: 500;
+  color: rgba(255,255,255,0.7);
+}
+
+.spaceship{
+  position: absolute;
+
+  img{
+    width: 5rem;
+    height: 5rem;
+
+    position: absolute;
+    bottom: 1.7rem;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  p{
+    color: black;
+    font-weight: 600;
+    background-color: white;
+    padding: 0.5rem;
+    border-radius: 5px;
+  }
+}
+
+.test1{
+  left: 4rem;
+  top: 15%;
+}
+
+.test2{
+  right: 7rem;
+  top: 30%;
+}
+
+.test3{
+  left: 12rem;
+  top: 45%;
+}
+
+.test4{
+  right: 15rem;
+  top: 60%;
+}
+
+.test5{
+  left: 7rem;
+  top: 75%;
+}
+
+.test6{
+  right: 3rem;
+  top: 85%;
+}
+
+.answers{
+  max-width: 50vw;
+  display: flex;
+  justify-content: center;
+  gap: 1vw;
+  flex-flow: wrap;
+
+  div{
+    width: 20vw;
+    min-height: 5rem;
+    font-size: 1.2rem;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.1);
+    text-align: center;
+
+    span{
+      opacity: 0.7;
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    p{
+      padding: 1rem;
+    }
+
+    opacity: 0;
+    animation: fadeDown 1s ease forwards;
+    &:first-of-type{
+      animation-delay: 1s;
+    }
+    &:nth-of-type(2){
+      animation-delay: 3s;
+    }
+    &:nth-of-type(3){
+      animation-delay: 5s;
+    }
+    &:nth-of-type(4){
+      animation-delay: 6s;
+    }
+    &:nth-of-type(5){
+      animation-delay: 6.5s;
+    }
+    &:nth-of-type(6){
+      animation-delay: 6.9s;
+    }
+    &:nth-of-type(7){
+      animation-delay: 7.2s;
+    }
+    animation-delay: 8s;
+  }
+
+  .correct{
+    opacity: 0;
+
+    animation-name: fadeDown, rightAnswer;
+    animation-duration: 1s, 4s;
+    animation-timing-function: ease;
+    animation-fill-mode: forwards;
+
+    &:first-of-type{
+      animation-delay: 1s, 8s;
+    }
+    &:nth-of-type(2){
+      animation-delay: 3s, 8s;
+    }
+    &:nth-of-type(3){
+      animation-delay: 5s, 8s;
+    }
+    &:nth-of-type(4){
+      animation-delay: 6s, 8s;
+    }
+    &:nth-of-type(5){
+      animation-delay: 6.5s, 8s;
+    }
+    &:nth-of-type(6){
+      animation-delay: 6.9s, 8s;
+    }
+    &:nth-of-type(7){
+      animation-delay: 7.2s, 8s;
+    }
+    animation-delay: 8s, 8s;
+  }
+
+  .wrong{
+    opacity: 0;
+
+    animation-name: fadeDown, wrongAnswer;
+    animation-duration: 1s, 4s;
+    animation-timing-function: ease;
+    animation-fill-mode: forwards;
+
+    &:first-of-type{
+      animation-delay: 1s, 8s;
+    }
+    &:nth-of-type(2){
+      animation-delay: 3s, 8s;
+    }
+    &:nth-of-type(3){
+      animation-delay: 5s, 8s;
+    }
+    &:nth-of-type(4){
+      animation-delay: 6s, 8s;
+    }
+    &:nth-of-type(5){
+      animation-delay: 6.5s, 8s;
+    }
+    &:nth-of-type(6){
+      animation-delay: 6.9s, 8s;
+    }
+    &:nth-of-type(7){
+      animation-delay: 7.2s, 8s;
+    }
+    animation-delay: 8s, 8s;
+  }
+}
+
+@keyframes fadeDown {
+  0%{
+    transform: translateY(-3rem);
+    opacity: 0;
+  }
+  100%{
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes rightAnswer {
+  0%{
+    border-color: rgba(255,255,255,0.1);
+    background-color: rgba(0,0,0,0.5);
+  }
+  100%{
+    border-color: rgb(0, 222, 0);
+    background-color: rgba(1, 94, 1, 0.393);
+  }
+}
+
+@keyframes wrongAnswer {
+  0%{
+    opacity: 1;
+  }
+  100%{
+    opacity: 0.6;
+  }
+}
+
+.question-container{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .countdown{
+    width: 30vw;
+    height: 0.3rem;
+    background-color: #01cf9e;
+    margin-top: 1rem;
+    border-radius: 10px;
+    animation: countdown 8s 0.5s forwards ease-in;
+  }
+}
+
+@keyframes countdown {
+  0%{
+    width: 30vw;
+  }
+  100%{
+    width: 0;
+  }
+}
+
+.slider{
+  display: flex;
+  align-items: center;
+  width: 40vw;
+  gap: 1.5rem;
+  
+  div{
+    flex-grow: 1;
+    background-color: #ffffff25;
+    height: 1.5rem;
+    border-radius: 10px;
+  }
+
+  p{
+    font-size: 1.5rem;
+    font-weight: bold;
+    font-style: italic;
+  }
+}
+
+#slider{
+  position: relative;
+
+  div{
+    width: 4.5%;
+    height: 100%;
+    background: #01cf9fb3;
+    position: absolute;
+    
+    @for $x from 1 through 27 {
+      &:nth-child(#{$x}) {
+        animation-delay: 300ms + 300ms * ($x - 1);
+      }
+    }
+
+    animation-delay: 300ms * 26;
+  }
+
+  p{
+    position: absolute;
+    top: -5rem;
+    padding: 1rem;
+    border-radius: 50%;
+    border: 1px solid rgb(0, 222, 0);
+    background-color: rgba(1, 94, 1, 0.393);
+    font-style: normal;
+    font-weight: normal;
+    animation-duration: 4s;
+    animation-delay: 8s;
+  }
+}
+
+.numbers div{
+  width: 10vw;
+  min-height: 5rem;
+  font-size: 1.5rem;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  text-align: center;
+}
+
+.numbers-correct{
+  animation: rightAnswer 4s ease forwards;
+}
+
+@keyframes fadeOut {
+  0%{
+    opacity: 1;
+  }
+  100%{
+    opacity: 0;
+  }
+}
+
+.fadeToScore{
+  animation: fadeOut 1s 15s ease forwards;
+}
+
+#scoreboard{
+  width: 100%;
+  height: calc(100% - 2rem);
+  position: absolute;
+  opacity: 0;
+  animation: fadeOut reverse 1s 16s forwards;
+
+  .scoreboard__participant{
+    display: flex;
+    align-items: center;
+    margin: 3rem 0;
+
+    h1{
+      width: 3rem;
+      font-style: italic;
+      opacity: 0.7;
+      font-size: 1.7rem;
+    }
+
+    h2{
+      width: 8rem;
+      font-size: 1.7rem;
+      margin-right: 2rem;
+      font-weight: bold;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    div{
+      animation: scoreWidth 6s 17s ease-in forwards;
+      height: 0.2rem;
+      width: 1rem;
+      background-color: #FBB540;
+      position: relative;
+
+      &::before{
+        content: '';
+        width: 0.8rem;
+        height: 0.8rem;
+        position: absolute;
+        left: -0.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: #FBB540;
+        border-radius: 50%;
+      }
+
+      &::after{
+        content: '';
+        width: 0.8rem;
+        height: 0.8rem;
+        position: absolute;
+        right: -0.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: #FBB540;
+        border-radius: 50%;
+      }
+    }
+  }
+
+  img{
+    height: 4.5rem;
+    transform: rotate(90deg);
+    margin-left: 2rem;
+  }
+}
+
+@keyframes scoreWidth {
+  0%{
+    width: 1rem;
+  }
+  100%{
+    width: 60%;
+  }
 }
 </style>
