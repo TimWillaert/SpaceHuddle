@@ -80,6 +80,23 @@
       </div>
       <p>{{ publicQuestion.question.parameter.maxValue }}</p>
     </div>
+    <div class="order" v-if="publicQuestion.questionType === QuizQuestionTypes.ORDER">
+      <draggable v-model="orderAnswers" 
+                    tag="transition-group" 
+                    :component-data="{ tag: 'ul', name: 'flip-list', type: 'transition' }"
+                    v-bind="dragOptions"
+                    group="orderAnswers"
+                    item-key="id">
+            <template #item="{ element }">
+              <div class="orderDraggable">
+                <div>
+                  <h2>{{ orderAnswers.findIndex((option) => option.id === element.id) + 1 }}</h2>
+                  <p>{{ element.keywords }}</p>
+                </div>
+              </div>
+            </template>
+          </draggable>
+    </div>
     <div class="numbers" v-if="publicQuestion.questionType === QuizQuestionTypes.NUMBER">
       <div :class="{ 'numbers-correct': randomNumber === publicQuestion.question.parameter.correctValue  }">
         <p>{{ randomNumber }}</p>
@@ -120,19 +137,19 @@
     <div class="scoreboard__participant">
       <h1>1</h1>
       <h2>Brenden</h2>
-      <div></div>
+      <div :style="{maxWidth: '60%'}"></div>
       <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" />
     </div>
     <div class="scoreboard__participant">
       <h1>2</h1>
       <h2>Verena</h2>
-      <div></div>
+      <div :style="{maxWidth: '40%'}"></div>
       <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" />
     </div>
     <div class="scoreboard__participant">
       <h1>3</h1>
       <h2>Joel</h2>
-      <div></div>
+      <div :style="{maxWidth: '20%'}"></div>
       <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" />
     </div>
   </div>
@@ -171,6 +188,7 @@ import {
 import TimerProgress from '@/components/shared/atoms/TimerProgress.vue';
 import * as sessionService from '@/services/session-service';
 import { ParticipantInfo } from '@/types/api/Participant';
+import draggable from 'vuedraggable';
 
 export interface PublicAnswerData {
   answer: Hierarchy;
@@ -183,7 +201,8 @@ export interface PublicAnswerData {
   components: {
     Vue3ChartJs,
     QuizResult,
-    TimerProgress
+    TimerProgress,
+    draggable
   },
   emits: ['changePublicAnswers', 'changePublicQuestion', 'changeQuizState'],
 })
@@ -216,6 +235,14 @@ export default class PublicBase extends Vue {
   numberInterval: any;
   numberIntervalTimer = 100;
   participants: ParticipantInfo[] = [];
+
+  orderAnswers: Hierarchy[] = []
+  dragOptions = {
+    animation: 200,
+    group: "description",
+    disabled: false,
+    ghostClass: "ghost"
+  }
 
   get isActive(): boolean {
     if (this.moderatedQuestionFlow) {
@@ -368,6 +395,13 @@ export default class PublicBase extends Vue {
       this.randomNumber = 0;
       this.numberIntervalTimer = 100;
       this.generateNumber();
+    } else if(this.publicQuestion?.questionType === this.QuizQuestionTypes.ORDER){
+      this.orderAnswers = this.publicQuestion.answers;
+      this.orderAnswers.sort((a, b) => 0.5 - Math.random());
+
+      setTimeout(() => {
+        this.orderAnswers = this.orderAnswers.sort((a, b) => a.order! - b.order!);
+      }, 9000)
     }
   }
 
@@ -375,6 +409,7 @@ export default class PublicBase extends Vue {
   async onParticipantsChanged(): Promise<void> {
     await sessionService.getParticipants(this.task!.sessionId).then((queryResult) => {
         this.participants = queryResult;
+        console.log(queryResult)
       });
   }
 
@@ -1110,7 +1145,39 @@ h1{
     width: 1rem;
   }
   100%{
-    width: 60%;
+    width: 100%;
   }
+}
+
+.orderDraggable{
+  width: 15vw;
+  min-height: 4rem;
+  font-size: 1.2rem;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  text-align: center;
+  margin: 0.5rem 0;
+
+  div{
+    padding: 1rem;
+    display: flex;
+    width: 100%;
+  }
+
+  h2{
+    width: 2rem;
+    margin-right: 0.5rem;
+  }
+}
+
+.flip-list-move {
+  transition: transform 0.5s;
+}
+.no-move {
+  transition: transform 0s;
 }
 </style>
