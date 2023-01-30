@@ -25,6 +25,13 @@ class VoteData
     public ?string $ideaId;
 
     /**
+     * ID of the participant.
+     * @var string|null
+     * @OA\Property(example="uuid")
+     */
+    public ?string $participantId;
+
+    /**
      * Rating of the idea.
      * @var int|null
      * @OA\Property()
@@ -54,6 +61,7 @@ class VoteData
         $reader = new ArrayReader($data);
         $this->id = $reader->findString("id");
         $this->ideaId = $reader->findString("idea_id");
+        $this->participantId = $reader->findString("participant_id");
         $this->rating = $reader->findInt("rating");
         $this->detailRating = $reader->findFloat("detail_rating");
         $this->timestamp = $reader->findString("timestamp");
