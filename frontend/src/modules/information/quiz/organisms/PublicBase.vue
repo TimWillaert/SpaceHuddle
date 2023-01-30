@@ -121,19 +121,19 @@
     <div v-if="showStatistics && publicQuestion" :key="publicQuestion?.question.id" id="scoreboard">
       <div class="scoreboard__participant">
         <h1>1</h1>
-        <h2>Brenden</h2>
+        <h2>{{ firstParticipants[0] }}</h2>
         <div :style="{maxWidth: '60%'}"></div>
         <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" />
       </div>
       <div class="scoreboard__participant">
         <h1>2</h1>
-        <h2>Verena</h2>
+        <h2>{{ firstParticipants[1] }}</h2>
         <div :style="{maxWidth: '40%'}"></div>
         <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" />
       </div>
       <div class="scoreboard__participant">
         <h1>3</h1>
-        <h2>Joel</h2>
+        <h2>{{ firstParticipants[2] }}</h2>
         <div :style="{maxWidth: '20%'}"></div>
         <img src="@/assets/icons/svg/spaceship.svg" alt="space ship" />
       </div>

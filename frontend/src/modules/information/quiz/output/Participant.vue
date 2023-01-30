@@ -1047,6 +1047,6 @@ label {
 
 .ghost {
   opacity: 0.5;
-  background-color: aquamarine;
+  background-color: #01cf9e;
 }
 </style>

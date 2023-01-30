@@ -881,5 +881,6 @@ export default class ModeratorContent extends Vue implements IModeratorContent {
 
 .ghost {
   opacity: 0.5;
+  background-color: #01cf9e;
 }
 </style>
