@@ -75,8 +75,8 @@
               :style="{ 'left': Math.floor(parseFloat(answer.idea.keywords) / (publicQuestion.question.parameter.minValue + publicQuestion.question.parameter.maxValue) * 100) + '%',
                         'transform': '-' + Math.floor(parseFloat(answer.idea.keywords) / (publicQuestion.question.parameter.minValue + publicQuestion.question.parameter.maxValue) * 100) + '%'}">
           </div>
-          <p :style="{ 'left': Math.floor(parseFloat(publicQuestion.question.parameter.correctValue) / (publicQuestion.question.parameter.minValue + publicQuestion.question.parameter.maxValue) * 100) + '%',
-                        'transform': '-' + Math.floor(parseFloat(publicQuestion.question.parameter.correctValue) / (publicQuestion.question.parameter.minValue + publicQuestion.question.parameter.maxValue) * 100) + '%'}"
+          <p :style="{ 'left': Math.floor(parseFloat(publicQuestion.question.parameter.correctValue) / (publicQuestion.question.parameter.minValue + publicQuestion.question.parameter.maxValue) * 100 - 6) + '%',
+                        'transform': '-' + Math.floor(parseFloat(publicQuestion.question.parameter.correctValue) / (publicQuestion.question.parameter.minValue + publicQuestion.question.parameter.maxValue) * 100 - 6) + '%'}"
               class="fade-down anim-slow"
           >
                         {{ publicQuestion.question.parameter.correctValue }}
