@@ -607,7 +607,7 @@ export default class Participant extends Vue {
   }
 
   async changeOrderVotes(){
-    if(!this.votes){
+    if(this.votes.length <= 0){
       this.orderAnswers.forEach(async (answer, index) => {
         await votingService
           .postVote(this.taskId, {
@@ -753,7 +753,7 @@ export default class Participant extends Vue {
       }
     }
     this.questionAnswered = this.getQuestionAnswered();
-    if (!this.moderatedQuestionFlow && this.initData) {
+    if (!this.moderatedQuestionFlow && this.initData && this.activeQuestionType !== QuestionType.ORDER) {
       if (this.questionAnswered) this.goToNextQuestion(null, true);
     }
   }
@@ -770,7 +770,7 @@ export default class Participant extends Vue {
   @Watch('votes', {immediate: true})
   votesChanged(): void {
     if(this.activeQuestionType !== QuestionType.ORDER) return
-    if(this.votes.length === this.publicAnswerList.length){
+    if(this.votes.length > 0){
       this.orderAnswers = this.publicAnswerList;
       let sortOrder = this.votes.sort((a, b) => a.rating - b.rating)
       let sortedVotes: PublicAnswerData[] = [];
@@ -782,6 +782,7 @@ export default class Participant extends Vue {
     } else{
       this.orderAnswers = this.publicAnswerList;
       this.orderAnswers.sort((a, b) => 0.5 - Math.random());
+      this.changeOrderVotes()
     }
   }
 }
